@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">News</string>
+    <string name="latest_to_old">Latest to Old</string>
+    <string name="old_to_latest">Old to Latest</string>
+</resources>
