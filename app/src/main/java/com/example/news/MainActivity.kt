@@ -1,20 +1,19 @@
 package com.example.news
 
 import android.Manifest
-import android.app.Activity
 import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
+import android.net.ConnectivityManager
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
-import com.example.news.model.NewsItemData
-import com.example.news.networking.RemoteApi
-import com.example.news.notifications.PushNotificationService
 import com.example.news.viewmodel.NewsViewModel
 import com.google.android.material.snackbar.Snackbar
+
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,6 +22,14 @@ class MainActivity : AppCompatActivity() {
 
         val newsViewModel = NewsViewModel()
         newsViewModel.fetchNews()
+
+        val tryAgain = findViewById<TextView>(R.id.try_again)
+        tryAgain.setOnClickListener {
+            newsViewModel.fetchNews()
+        }
+
+        if(!isNetworkAvailable())
+            tryAgain.visibility = View.VISIBLE
 
         //list for news
         val recyclerView = findViewById<RecyclerView>(R.id.news_list)
@@ -36,6 +43,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
         newsViewModel.newsList.observe(this, Observer {
+            if(it == null || it.size == 0){
+                tryAgain.visibility = View.VISIBLE
+            }
+            else
+                tryAgain.visibility = View.GONE
             val adapter = NewsAdapter(this, it)
 
             recyclerView.adapter = adapter
@@ -53,5 +65,11 @@ class MainActivity : AppCompatActivity() {
         latestToOld.setOnClickListener {
             newsViewModel.fetchLatestToOldNews()
         }
+    }
+
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetworkInfo = connectivityManager?.activeNetworkInfo
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected
     }
 }
